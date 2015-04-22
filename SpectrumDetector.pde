@@ -13,6 +13,10 @@ float r;
 float g;
 float b;
 
+float blueLevel;
+
+color squareColor;
+
 FloatList reds = new FloatList();
 FloatList greens = new FloatList();
 FloatList blues = new FloatList();
@@ -39,7 +43,7 @@ void setup() {
 
     // The camera can be initialized directly using an element
     // from the array returned by list():
-    cam = new Capture(this, cameras[18]);
+    cam = new Capture(this, cameras[0]);
     // Or, the settings can be defined based on the text in the list
     //cam = new Capture(this, 640, 480, "Built-in iSight", 30);
     
@@ -81,16 +85,23 @@ void draw() {
     b+=blues.get(col);
   }
   r=r/reds.size();
-  println("red "+r);
+  //println("red "+r);
   
   g=g/greens.size();
-  println("green "+g);
+  //println("green "+g);
   
   b=b/blues.size();
-  println("blues "+b);
+  //println("blues "+b);
   
-  color squareColor = color(r,g,b);
-  
+  squareColor = color(r,g,b);
+  fill(255);
+  text("The color of your light is approximately: ", 10,10);
   fill(squareColor);
-  rect(0,0,50,50);
+  rect(20,20,50,50);
+  
+  blueLevel = b/((r+g)/2);
+  println(blueLevel);
+  fill(255);
+  rect(20,height-20,50,-100*(blueLevel-1));
+  
 }
