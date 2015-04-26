@@ -14,6 +14,8 @@ float g;
 float b;
 float h;
 float s;
+float averageS;
+float threshold;
 
 float eff;
 
@@ -31,14 +33,20 @@ FloatList hues = new FloatList();
 FloatList sats = new FloatList();
 FloatList brights = new FloatList();
 
+boolean capture;
+
 void setup() {
+  threshold = 80;
+  eff=0;
   r=0;
   g=0;
   b=0;
   h=0;
   s=0;
+  capture = false;
+  
   size(640, 480);
-
+ background(0);
   String[] cameras = Capture.list();
 
   if (cameras == null) {
@@ -55,7 +63,7 @@ void setup() {
 
     // The camera can be initialized directly using an element
     // from the array returned by list():
-    cam = new Capture(this, cameras[8]);
+    cam = new Capture(this, cameras[7]);
     // Or, the settings can be defined based on the text in the list
     //cam = new Capture(this, 640, 480, "Built-in iSight", 30);
     
@@ -65,7 +73,7 @@ void setup() {
 }
 
 void draw() {
-  background(0);
+ 
   //clear everything for fresh start
   r=0;
   g=0;
@@ -83,11 +91,13 @@ void draw() {
   if (cam.available() == true) {
     cam.read();
   }
+   if (keyPressed == true) {capture=true;}
+  if(capture){
   //fill array lists with all the rgb, hue and sat values
   for(int i=0;i<width;i++){
     for(int j=0; j<height;j++){
     c = cam.get(i, j);
-    if(brightness(c)>10 && brightness(c)<200){
+    if(brightness(c)>2 && brightness(c)<220){
     reds.append(red(c));
     blues.append(blue(c));
     greens.append(green(c));
@@ -120,23 +130,29 @@ void draw() {
   //println("blues "+b);
   
   h=h/hues.size();
-  s=s/sats.size();
   
+  //efficiency is the source?
+  averageS=s/sats.size();
+  //println(sats.size());
+  println(averageS);
+
+  
+  background(0);
   //sort the colors by hue
   hues.sort();
   sats.sort();
   
   //draw the spectrum
   colorMode(HSB,255);
-  strokeWeight(2);
+  strokeWeight(5);
   for(int i=0;i<sats.size();i++){
-    if(sats.get(i)>128){
-    stroke(hues.get(i),sats.get(i),brights.get(i));
+    if(sats.get(i)>32){
+    stroke(hues.get(i),sats.get(i),brights.get(i)+128);
     float x = map(i,0,sats.size(),0,width);
-    line(x,0,x,height);
+    line(x,100,x,height);
+    noStroke();
     }
   }
-  
   //draw average hue
   colorMode(HSB,255);
   squareColor = color(h,255,128);
@@ -144,6 +160,11 @@ void draw() {
   fill(squareColor);
   rect(20,20,50,50);
   colorMode(RGB,255);
+  
+  capture = false;
+  }
+  
+ 
   
   //find relative levels of colors
   blueLevel = b/((r+g)/2);
@@ -158,18 +179,30 @@ void draw() {
   rect(20,height-20,50,depressionLevel);
   text("Depression Level", 20, height);
   
-  //efficiency is the source?
-  eff = s;
-  if(eff<60){
-    println("not energy efficient "+s);
-  }else{
-  println("energy efficient "+s);
-  }
   
-  rect(150,height-20,50,eff*-2);
-  text("Efficiency Level", 150, height);
+  
   
   //display the camera image
   image(cam, width-100, height-100,100,100);
+  
+  stroke(255);
+  strokeWeight(.2);
+  line(width-50, height-100,width-50,height);
+  line(width-100, height-50,width,height-50);
 
+   colorMode(HSB, 255);
+   strokeWeight(2);
+  for(int i=0; i<sats.size();i++){
+    if(abs((sats.get(i)*brights.get(i)/255)-averageS)>threshold){
+      println("peak at "+ hues.get(i));
+      eff+=abs(sats.get(i)-averageS);
+      println("peak strength " + eff);
+      stroke(hues.get(i),255,128);
+      line(map(hues.get(i),0,255,0,width),50,map(hues.get(i),0,255,0,width),100);
+    }
+  }
+  rect(150,height-20,50,eff);
+  text("Efficiency Level", 150, height);
+  stroke(255);
+  eff=0;
 }
