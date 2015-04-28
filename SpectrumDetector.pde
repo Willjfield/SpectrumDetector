@@ -97,7 +97,7 @@ void draw() {
   for(int i=0;i<width;i++){
     for(int j=0; j<height;j++){
     c = cam.get(i, j);
-    if(brightness(c)>2 && brightness(c)<220){
+    if(brightness(c)>2 && brightness(c)<200 && dist(i,j,width/2,height/2)>50 && saturation(c)>64){
     reds.append(red(c));
     blues.append(blue(c));
     greens.append(green(c));
@@ -134,7 +134,7 @@ void draw() {
   //efficiency is the source?
   averageS=s/sats.size();
   //println(sats.size());
-  println(averageS);
+  //println(averageS);
 
   
   background(0);
@@ -173,10 +173,11 @@ void draw() {
   
   fill(255);
   //how depressed will this make you?
-  depressionLevel = -100*(blueLevel-1);
+  //depressionLevel = -1000*(1/(1-blueLevel));
+  depressionLevel = (blueLevel-1)*100;
   //draw how depressed you'll be
-  if(depressionLevel>0){depressionLevel=0;}
-  rect(20,height-20,50,depressionLevel);
+  if(depressionLevel<0){depressionLevel=0;}
+  rect(20,height-20,50,-depressionLevel);
   text("Depression Level", 20, height);
   
   
@@ -194,15 +195,18 @@ void draw() {
    strokeWeight(2);
   for(int i=0; i<sats.size();i++){
     if(abs((sats.get(i)*brights.get(i)/255)-averageS)>threshold){
-      println("peak at "+ hues.get(i));
+      //println("peak at "+ hues.get(i));
       eff+=abs(sats.get(i)-averageS);
-      println("peak strength " + eff);
+      //println("peak strength " + eff);
       stroke(hues.get(i),255,128);
       line(map(hues.get(i),0,255,0,width),50,map(hues.get(i),0,255,0,width),100);
     }
   }
-  rect(150,height-20,50,eff);
+  noStroke();
+  rect(150,height-20,50,-100*eff/sats.size());
   text("Efficiency Level", 150, height);
   stroke(255);
+  println(eff/sats.size());
+  println(depressionLevel);
   eff=0;
 }
